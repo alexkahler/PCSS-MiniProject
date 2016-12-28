@@ -33,7 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>BinarySearchTree.Program</StartupObject>
+    <StartupObject>BubbleSort.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
