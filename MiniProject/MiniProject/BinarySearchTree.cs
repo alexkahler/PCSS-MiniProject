@@ -16,26 +16,15 @@ namespace BinarySearchTree
             BinaryTree<int> bt = new BinaryTree<int>();
             Random rand = new Random();
             int number;
-            for (int i = 0; i < 60; i = i + 10)
-            {
-                //number = rand.Next(21);
-                Console.WriteLine("Adding " + i);
-                bt.Add(i);
-            }
-            bt.Add(25);
-            Console.WriteLine("Is BST?: " + bt.isBST(bt.Root, bt.Min(), bt.Max()));
-            Console.WriteLine("Tree count: " + bt.Count);
-            /*
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 11; i++)
             {
                 number = rand.Next(21);
-                if (bt.Remove(number))
-                    Console.WriteLine("Removing " + number);
+                Console.WriteLine("Adding " + number);
+                bt.Add(number);
             }
-            */
-
-            bt.PrintTree(BinaryTree<int>.TraversalMethods.Preorder);
-            Console.WriteLine("Is BST?: " + bt.isBST(bt.Root, bt.Min(), bt.Max()));
+            Console.WriteLine("Tree count: " + bt.Count);
+            Console.WriteLine(bt.PrintTree(BinaryTree<int>.TraversalMethods.Inorder));
+            Console.WriteLine("Is BST?: " + bt.isBST(bt.Min(), bt.Max()));
 
             Console.ReadLine();
         }
@@ -59,7 +48,7 @@ namespace BinarySearchTree
             root = null;
         }
 
-        public Node<T> Root
+        private Node<T> Root
         {
             get
             {
@@ -257,7 +246,12 @@ namespace BinarySearchTree
             return (a > b) ? a : b;
         }
 
-        public Boolean isBST(Node<T> node, T minValue, T maxValue)
+        public Boolean isBST(T minValue, T maxValue)
+        {
+            return isBST(Root, minValue, maxValue);
+        }
+
+        private Boolean isBST(Node<T> node, T minValue, T maxValue)
         {
             if (node == null)
                 return true;
@@ -378,27 +372,51 @@ namespace BinarySearchTree
             return true;
         }
 
-        public void PrintTree(TraversalMethods method)
+        public String PrintTree(TraversalMethods method)
         {
-            List<T> list = new List<T>();
+            return PrintTree(method, Root, "", 0);
+        }
+
+        public String PrintTree(TraversalMethods method, Node<T> currentNode, String result, int level)
+        {
+            level++;
             switch (method)
             {
                 case TraversalMethods.Preorder:
-                    list = PreorderTraversal(Root, list);
+                    if (currentNode != null)
+                    {
+                        result = result + "[";
+                        result = result + "L" + level + ": " + currentNode.Value;
+                        result = PrintTree(method, currentNode.Left, result, level);
+                        result = PrintTree(method, currentNode.Right, result, level);
+                        result = result + "]";
+
+                    }
                     break;
                 default:
                 case TraversalMethods.Inorder:
-                    list = InorderTraversal(Root, list);
+                    if (currentNode != null)
+                    {
+                        result = result + "[";
+                        result = PrintTree(method, currentNode.Left, result, level);
+                        result = result + "L" + level + ": " + currentNode.Value;
+                        result = PrintTree(method, currentNode.Right, result, level);
+                        result = result + "]";
+
+                    }
                     break;
                 case TraversalMethods.Postorder:
-                    list = PostorderTraversal(Root, list);
+                    if (currentNode != null)
+                    {
+                        result = result + "[";
+                        result = PrintTree(method, currentNode.Left, result, level);
+                        result = PrintTree(method, currentNode.Right, result, level);
+                        result = result + "L" + level + ": " + currentNode.Value;
+                        result = result + "]";
+                    }
                     break;
             }
-            Console.WriteLine("Printing tree:");
-            foreach (T t in list)
-            {
-                Console.WriteLine(t.ToString() + " ");
-            }
+            return result;
         }
 
         public void CopyTo(T[] array, int arrayIndex)
