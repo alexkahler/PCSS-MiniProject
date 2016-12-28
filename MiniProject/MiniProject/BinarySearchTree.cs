@@ -184,56 +184,58 @@ namespace BinarySearchTree
             {
                 node.Right = Add(data, node.Right);
             }
-
+            
             node.Height = Max(GetNodeHeight(node.Left), GetNodeHeight(node.Right)) + 1;
             int balance = GetNodeBalance(node);
+            
             if (balance > 1 && comparer.Compare(data, node.Left.Value) < 0)
             {
-                return RightRotate(node);
+                node = RightRotate(node);
             }
-            if (balance < -1 && comparer.Compare(data, node.Right.Value) > 0)
+            else if (balance < -1 && comparer.Compare(data, node.Right.Value) > 0)
             {
-                return LeftRotate(node);
+                node = LeftRotate(node);
             }
-            if (balance > 1 && comparer.Compare(data, node.Left.Value) > 0)
+            else if (balance > 1 && comparer.Compare(data, node.Left.Value) > 0)
             {
                 node.Left = LeftRotate(node.Left);
-                return RightRotate(node);
+                node = RightRotate(node);
             }
-            if (balance < -1 && comparer.Compare(data, node.Right.Value) < 0)
+            else if (balance < -1 && comparer.Compare(data, node.Right.Value) < 0)
             {
                 node.Right = RightRotate(node.Right);
-                return LeftRotate(node);
+                node = LeftRotate(node);
             }
             return node;
         }
 
-        private Node<T> RightRotate(Node<T> node)
+        private Node<T> RightRotate(Node<T> Q)
         {
-            Node<T> leftChild = node.Left;
-            Node<T> leftGrandChild = leftChild.Right;
+            // v.2
+            Node<T> P = Q.Left; // P = new root
+            Node<T> B = Q.Left.Right; // B = P's right child (Q grandchild) > Q's left child
 
-            leftChild.Right = node;
-            node.Left = leftGrandChild;
+            P.Right = Q;
+            Q.Left = B;
+              
+            Q.Height = Max(GetNodeHeight(Q.Left), GetNodeHeight(Q.Right)) + 1;
+            P.Height = Max(GetNodeHeight(P.Left), GetNodeHeight(P.Right)) + 1;
 
-            node.Height = Max(GetNodeHeight(node.Left), GetNodeHeight(node.Right)) + 1;
-            leftChild.Height = Max(GetNodeHeight(leftChild.Left), GetNodeHeight(leftChild.Right)) + 1;
-
-            return leftChild;
+            return P;
         }
 
-        private Node<T> LeftRotate(Node<T> node)
+        private Node<T> LeftRotate(Node<T> P)
         {
-            Node<T> rightChild = node.Right;
-            Node<T> rightGrandChild = rightChild.Left;
+            Node<T> Q = P.Right;
+            Node<T> B = Q.Left;
 
-            rightChild = node;
-            node.Right = rightGrandChild;
+            Q.Left = P;
+            P.Right = B;
 
-            node.Height = Max(GetNodeHeight(node.Left), GetNodeHeight(node.Right)) + 1;
-            rightChild.Height = Max(GetNodeHeight(rightChild.Left), GetNodeHeight(rightChild.Right)) + 1;
+            P.Height = Max(GetNodeHeight(P.Left), GetNodeHeight(P.Right)) + 1;
+            Q.Height = Max(GetNodeHeight(Q.Left), GetNodeHeight(Q.Right)) + 1;
 
-            return rightChild;
+            return Q;
         }
 
         private int GetNodeBalance(Node<T> node)
