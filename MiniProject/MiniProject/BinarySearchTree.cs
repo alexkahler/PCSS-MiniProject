@@ -152,7 +152,7 @@ namespace BinarySearchTree
             Root = Add(data, Root);
         }
 
-        public Node<T> Add(T data, Node<T> node)
+        private Node<T> Add(T data, Node<T> node)
         {
             if (node == null)
             {
@@ -163,7 +163,7 @@ namespace BinarySearchTree
             int result = comparer.Compare(node.Value, data);
             if (result == 0)
             {
-                return node;
+                return node; // Already exists, so just back out.
             }
             else if (result > 0)
             {
