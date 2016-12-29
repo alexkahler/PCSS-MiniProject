@@ -10,7 +10,8 @@ namespace MiniProject
     {
         static void Main(string[] args)
         {
-            //Test 2
+            Console.WriteLine("Multi-Threaded TCP Server starting");
+            TCPServer server = new TCPServer(80085);
         }
     }
 }
