@@ -11,7 +11,7 @@ namespace MiniProject
         static void Main(string[] args)
         {
             Console.WriteLine("Multi-Threaded TCP Server starting");
-            TCPServer server = new TCPServer(80085);
+            TCPServer server = new TCPServer(58008);
         }
     }
 }

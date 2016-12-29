@@ -3,44 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
+
 
 namespace MiniProject
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            BinaryTree<int> bt = new BinaryTree<int>();
-            Random rand = new Random();
-            int number;
-            for (int i = 0; i < 60; i = i + 10)
-            {
-                //number = rand.Next(21);
-                Console.WriteLine("Adding " + i);
-                bt.Add(i);
-            }
-            bt.Add(25);
-            Console.WriteLine("Is BST?: " + bt.isBST(bt.Root, bt.Min(), bt.Max()));
-            Console.WriteLine("Tree count: " + bt.Count);
-            /*
-            for (int i = 0; i < 3; i++)
-            {
-                number = rand.Next(21);
-                if (bt.Remove(number))
-                    Console.WriteLine("Removing " + number);
-            }
-            */
-
-            bt.PrintTree(BinaryTree<int>.TraversalMethods.Preorder);
-            Console.WriteLine("Is BST?: " + bt.isBST(bt.Root, bt.Min(), bt.Max()));
-
-            Console.ReadLine();
-        }
-    }
-
     public class BinaryTree<T> : ICollection<T>, IEnumerable, IEnumerable<T>
     {
         private Node<T> root;
@@ -59,7 +25,7 @@ namespace MiniProject
             root = null;
         }
 
-        public Node<T> Root
+        private Node<T> Root
         {
             get
             {
@@ -163,7 +129,7 @@ namespace MiniProject
             Root = Add(data, Root);
         }
 
-        public Node<T> Add(T data, Node<T> node)
+        private Node<T> Add(T data, Node<T> node)
         {
             if (node == null)
             {
@@ -174,7 +140,8 @@ namespace MiniProject
             int result = comparer.Compare(node.Value, data);
             if (result == 0)
             {
-                return node;
+                node.Occurency++;
+                return node; // Already exists, so just back out.
             }
             else if (result > 0)
             {
@@ -184,56 +151,58 @@ namespace MiniProject
             {
                 node.Right = Add(data, node.Right);
             }
-
+            
             node.Height = Max(GetNodeHeight(node.Left), GetNodeHeight(node.Right)) + 1;
             int balance = GetNodeBalance(node);
+            
             if (balance > 1 && comparer.Compare(data, node.Left.Value) < 0)
             {
-                return RightRotate(node);
+                node = RightRotate(node);
             }
-            if (balance < -1 && comparer.Compare(data, node.Right.Value) > 0)
+            else if (balance < -1 && comparer.Compare(data, node.Right.Value) > 0)
             {
-                return LeftRotate(node);
+                node = LeftRotate(node);
             }
-            if (balance > 1 && comparer.Compare(data, node.Left.Value) > 0)
+            else if (balance > 1 && comparer.Compare(data, node.Left.Value) > 0)
             {
                 node.Left = LeftRotate(node.Left);
-                return RightRotate(node);
+                node = RightRotate(node);
             }
-            if (balance < -1 && comparer.Compare(data, node.Right.Value) < 0)
+            else if (balance < -1 && comparer.Compare(data, node.Right.Value) < 0)
             {
                 node.Right = RightRotate(node.Right);
-                return LeftRotate(node);
+                node = LeftRotate(node);
             }
             return node;
         }
 
-        private Node<T> RightRotate(Node<T> node)
+        private Node<T> RightRotate(Node<T> Q)
         {
-            Node<T> leftChild = node.Left;
-            Node<T> leftGrandChild = leftChild.Right;
+            // v.2
+            Node<T> P = Q.Left; // P = new root
+            Node<T> B = Q.Left.Right; // B = P's right child (Q grandchild) > Q's left child
 
-            leftChild.Right = node;
-            node.Left = leftGrandChild;
+            P.Right = Q;
+            Q.Left = B;
+              
+            Q.Height = Max(GetNodeHeight(Q.Left), GetNodeHeight(Q.Right)) + 1;
+            P.Height = Max(GetNodeHeight(P.Left), GetNodeHeight(P.Right)) + 1;
 
-            node.Height = Max(GetNodeHeight(node.Left), GetNodeHeight(node.Right)) + 1;
-            leftChild.Height = Max(GetNodeHeight(leftChild.Left), GetNodeHeight(leftChild.Right)) + 1;
-
-            return leftChild;
+            return P;
         }
 
-        private Node<T> LeftRotate(Node<T> node)
+        private Node<T> LeftRotate(Node<T> P)
         {
-            Node<T> rightChild = node.Right;
-            Node<T> rightGrandChild = rightChild.Left;
+            Node<T> Q = P.Right;
+            Node<T> B = Q.Left;
 
-            rightChild = node;
-            node.Right = rightGrandChild;
+            Q.Left = P;
+            P.Right = B;
 
-            node.Height = Max(GetNodeHeight(node.Left), GetNodeHeight(node.Right)) + 1;
-            rightChild.Height = Max(GetNodeHeight(rightChild.Left), GetNodeHeight(rightChild.Right)) + 1;
+            P.Height = Max(GetNodeHeight(P.Left), GetNodeHeight(P.Right)) + 1;
+            Q.Height = Max(GetNodeHeight(Q.Left), GetNodeHeight(Q.Right)) + 1;
 
-            return rightChild;
+            return Q;
         }
 
         private int GetNodeBalance(Node<T> node)
@@ -255,7 +224,12 @@ namespace MiniProject
             return (a > b) ? a : b;
         }
 
-        public Boolean isBST(Node<T> node, T minValue, T maxValue)
+        public Boolean isBST(T minValue, T maxValue)
+        {
+            return isBST(Root, minValue, maxValue);
+        }
+
+        private Boolean isBST(Node<T> node, T minValue, T maxValue)
         {
             if (node == null)
                 return true;
@@ -376,27 +350,42 @@ namespace MiniProject
             return true;
         }
 
-        public void PrintTree(TraversalMethods method)
+        public String PrintTree(TraversalMethods method)
         {
-            List<T> list = new List<T>();
+            return PrintTree(method, Root, "");
+        }
+
+        public String PrintTree(TraversalMethods method, Node<T> currentNode, String result)
+        {
             switch (method)
             {
                 case TraversalMethods.Preorder:
-                    list = PreorderTraversal(Root, list);
+                    if (currentNode != null)
+                    {
+                        result = result + currentNode.Value + " " + currentNode.Occurency + ", ";
+                        result = PrintTree(method, currentNode.Left, result);
+                        result = PrintTree(method, currentNode.Right, result);
+                    }
                     break;
                 default:
                 case TraversalMethods.Inorder:
-                    list = InorderTraversal(Root, list);
+                    if (currentNode != null)
+                    {
+                        result = PrintTree(method, currentNode.Left, result);
+                        result = result + currentNode.Value + " " + currentNode.Occurency + ", ";
+                        result = PrintTree(method, currentNode.Right, result);
+                    }
                     break;
                 case TraversalMethods.Postorder:
-                    list = PostorderTraversal(Root, list);
+                    if (currentNode != null)
+                    {
+                        result = PrintTree(method, currentNode.Left, result);
+                        result = PrintTree(method, currentNode.Right, result);
+                        result = result + currentNode.Value + " " + currentNode.Occurency + ", ";
+                    }
                     break;
             }
-            Console.WriteLine("Printing tree:");
-            foreach (T t in list)
-            {
-                Console.WriteLine(t.ToString() + " ");
-            }
+            return result.TrimEnd(new char[] { ',' });
         }
 
         public void CopyTo(T[] array, int arrayIndex)
@@ -510,6 +499,7 @@ namespace MiniProject
     {
         private T data;
         private int height;
+        private int occurency;
         private NodeList<T> children = null;
 
         private Node() { } //No default constructor
@@ -523,6 +513,7 @@ namespace MiniProject
             children[0] = left;
             children[1] = right;
             Height = 1;
+            Occurency = 1;
         }
 
         public int Height
@@ -534,6 +525,18 @@ namespace MiniProject
             set
             {
                 height = value;
+            }
+        }
+
+        public int Occurency
+        {
+            get
+            {
+                return occurency;
+            }
+            set
+            {
+                occurency = value;
             }
         }
 
