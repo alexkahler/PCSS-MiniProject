@@ -6,117 +6,94 @@ using System.Threading;
 
 namespace MiniProject
 {
-    public class StateObject
-    {
-        public Socket workSocket = null;
-        public const int BufferSize = 1024;
-        public byte[] buffer = new byte[BufferSize];
-        public StringBuilder sb = new StringBuilder();
-    }
-
     class Server
     {
-        public static ManualResetEvent allDone = new ManualResetEvent(false);
+        public static string data = null;
+        private static byte[] bytes = new Byte[1024];
+
 
         public static void StartListening()
         {
-            byte[] bytes = new byte[1024];
-            IPHostEntry ipHostEntry = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress ipAddress = ipHostEntry.AddressList[0];
-            IPEndPoint localEndPoint =
-                new IPEndPoint(ipAddress, 58008);
+            
 
-            Console.WriteLine(ipAddress);
+            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+            IPAddress ipAddress = ipHostInfo.AddressList[0];
+            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 58008);
 
-            Socket listener = new Socket(AddressFamily.InterNetwork,
-                SocketType.Stream, ProtocolType.Tcp);
+            Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             try
             {
                 listener.Bind(localEndPoint);
-                listener.Listen(100);
+                listener.Listen(10);
+
+                Thread inputThread = new Thread(Input);
 
                 while (true)
                 {
-                    allDone.Reset();
-                    Console.WriteLine("Waiting for a connection ...");
-                    listener.BeginAccept(new AsyncCallback(AcceptCallback),
-                        listener);
-                    allDone.WaitOne();
+                    
+
+                    while (true)
+                    {
+                        bytes = new byte[1024];
+                        int bytesRec = handler.Receive(bytes);
+                        data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                        if (data.IndexOf("<EOF>") > -1)
+                        {
+                            break;
+                        }
+                    }
+                    Console.WriteLine("Text received: {0}", data);
+
+                    byte[] msg = Encoding.ASCII.GetBytes(data);
+
+                    handler.Shutdown(SocketShutdown.Both);
+                    handler.Close();
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
             }
-            Console.WriteLine("\nPress enter to continue...");
+
+            Console.WriteLine("\nPress Enter to continue ...");
             Console.Read();
-        }
-
-        public static void AcceptCallback(IAsyncResult ar)
-        {
-            allDone.Set();
-            Socket listener = (Socket)ar.AsyncState;
-            Socket handler = listener.EndAccept(ar);
-            StateObject state = new StateObject();
-            state.workSocket = handler;
-            handler.BeginReceive(state.buffer, 0,
-                StateObject.BufferSize, 0,
-                new AsyncCallback(ReadCallback), state);
-        }
-
-        public static void ReadCallback(IAsyncResult ar)
-        {
-            String content = String.Empty;
-            StateObject state = (StateObject)ar.AsyncState;
-            Socket handler = state.workSocket;
-            int bytesRead = handler.EndReceive(ar);
-
-            if (bytesRead > 0)
-            {
-                state.sb.Append(Encoding.ASCII.GetString(
-                    state.buffer, 0, bytesRead));
-            }
-            content = state.sb.ToString();
-            if (content.IndexOf("<EOF>") > -1)
-            {
-                Console.WriteLine("Read {0} bytes from Socket.\nMessage: {1}",
-                    content.Length, content);
-                Send(handler, content);
-            }
-            else
-            {
-                handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(ReadCallback), state);
-            }
-        }
-
-        private static void Send(Socket handler, String data)
-        {
-            byte[] byteData = Encoding.ASCII.GetBytes(data);
-            handler.BeginSend(byteData, 0, byteData.Length,
-                0, new AsyncCallback(SendCallback), handler);
-        }
-
-        private static void SendCallback(IAsyncResult ar)
-        {
-            try
-            {
-                Socket handler = (Socket)ar.AsyncState;
-                int bytesSent = handler.EndSend(ar);
-                Console.WriteLine("Sent {0} bytes to client.", bytesSent);
-                handler.Shutdown(SocketShutdown.Both);
-                handler.Close();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
         }
 
         static void Main(string[] args)
         {
-            StartListening();
+            StartListening();  
+        }
+
+        static byte[] Input()
+        {
+            while (true)
+            {
+                Console.WriteLine("Waiting for connection ...");
+                Socket handler = listener.Accept();
+                data = null;
+
+                while (true)
+                {
+                    bytes = new byte[1024];
+                    int bytesRec = handler.Receive(bytes);
+                    data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                    if (data.IndexOf("<EOF>") > -1)
+                    {
+                        break;
+                    }
+                }
+                Console.WriteLine("Text received: {0}", data);
+
+                byte[] msg = Encoding.ASCII.GetBytes(data);
+                return msg;
+            }
+        }
+
+        static void Output(Socket handler, byte[] msg)
+        {
+            
+            handler.Send(msg);
         }
     }
 }
