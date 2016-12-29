@@ -350,12 +350,17 @@ namespace MiniProject
             return true;
         }
 
+        public String PrintTree()
+        {
+            return PrintTree(TraversalMethods.Inorder);
+        }
+
         public String PrintTree(TraversalMethods method)
         {
             return PrintTree(method, Root, "");
         }
 
-        public String PrintTree(TraversalMethods method, Node<T> currentNode, String result)
+        private String PrintTree(TraversalMethods method, Node<T> currentNode, String result)
         {
             switch (method)
             {
@@ -386,6 +391,7 @@ namespace MiniProject
                     break;
             }
             return result.TrimEnd(new char[] { ',' });
+
         }
 
         public void CopyTo(T[] array, int arrayIndex)
