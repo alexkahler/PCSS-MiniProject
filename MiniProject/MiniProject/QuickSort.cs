@@ -1,4 +1,4 @@
-﻿namespace MiniProject
+﻿namespace Server
 {
     class QuickSort
     {

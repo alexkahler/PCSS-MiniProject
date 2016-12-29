@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 
-namespace MiniProject
+namespace Server
 {
     public class BinaryTree<T> : ICollection<T>, IEnumerable, IEnumerable<T>
     {
