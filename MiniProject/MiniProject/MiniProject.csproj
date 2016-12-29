@@ -33,7 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>MiniProject.Server</StartupObject>
+    <StartupObject>MiniProject.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

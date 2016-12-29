@@ -122,7 +122,7 @@ class TCPServer
                                     {
                                         bt.Add(s);
                                     }
-                                    sWriter.WriteLine(bt.PrintTree());
+                                    sWriter.WriteLine(bt.PrintTree(BinaryTree<string>.TraversalMethods.Inorder));
                                     break;
                                 }
                             case "QS":

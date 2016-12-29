@@ -3,33 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
+
 
 namespace MiniProject
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            BinaryTree<int> bt = new BinaryTree<int>();
-            Random rand = new Random();
-            int number;
-            for (int i = 0; i < 11; i++)
-            {
-                number = rand.Next(21);
-                Console.WriteLine("Adding " + number);
-                bt.Add(number);
-            }
-            Console.WriteLine("Tree count: " + bt.Count);
-            Console.WriteLine(bt.PrintTree(BinaryTree<int>.TraversalMethods.Inorder));
-            Console.WriteLine("Is BST?: " + bt.isBST(bt.Min(), bt.Max()));
-
-            Console.ReadLine();
-        }
-    }
-
     public class BinaryTree<T> : ICollection<T>, IEnumerable, IEnumerable<T>
     {
         private Node<T> root;
@@ -163,6 +140,7 @@ namespace MiniProject
             int result = comparer.Compare(node.Value, data);
             if (result == 0)
             {
+                node.Occurency++;
                 return node; // Already exists, so just back out.
             }
             else if (result > 0)
@@ -374,49 +352,40 @@ namespace MiniProject
 
         public String PrintTree(TraversalMethods method)
         {
-            return PrintTree(method, Root, "", 0);
+            return PrintTree(method, Root, "");
         }
 
-        public String PrintTree(TraversalMethods method, Node<T> currentNode, String result, int level)
+        public String PrintTree(TraversalMethods method, Node<T> currentNode, String result)
         {
-            level++;
             switch (method)
             {
                 case TraversalMethods.Preorder:
                     if (currentNode != null)
                     {
-                        result = result + "[";
-                        result = result + "L" + level + ": " + currentNode.Value;
-                        result = PrintTree(method, currentNode.Left, result, level);
-                        result = PrintTree(method, currentNode.Right, result, level);
-                        result = result + "]";
-
+                        result = result + currentNode.Value + " " + currentNode.Occurency + ", ";
+                        result = PrintTree(method, currentNode.Left, result);
+                        result = PrintTree(method, currentNode.Right, result);
                     }
                     break;
                 default:
                 case TraversalMethods.Inorder:
                     if (currentNode != null)
                     {
-                        result = result + "[";
-                        result = PrintTree(method, currentNode.Left, result, level);
-                        result = result + "L" + level + ": " + currentNode.Value;
-                        result = PrintTree(method, currentNode.Right, result, level);
-                        result = result + "]";
-
+                        result = PrintTree(method, currentNode.Left, result);
+                        result = result + currentNode.Value + " " + currentNode.Occurency + ", ";
+                        result = PrintTree(method, currentNode.Right, result);
                     }
                     break;
                 case TraversalMethods.Postorder:
                     if (currentNode != null)
                     {
-                        result = result + "[";
-                        result = PrintTree(method, currentNode.Left, result, level);
-                        result = PrintTree(method, currentNode.Right, result, level);
-                        result = result + "L" + level + ": " + currentNode.Value;
-                        result = result + "]";
+                        result = PrintTree(method, currentNode.Left, result);
+                        result = PrintTree(method, currentNode.Right, result);
+                        result = result + currentNode.Value + " " + currentNode.Occurency + ", ";
                     }
                     break;
             }
-            return result;
+            return result.TrimEnd(new char[] { ',' });
         }
 
         public void CopyTo(T[] array, int arrayIndex)
@@ -530,6 +499,7 @@ namespace MiniProject
     {
         private T data;
         private int height;
+        private int occurency;
         private NodeList<T> children = null;
 
         private Node() { } //No default constructor
@@ -543,6 +513,7 @@ namespace MiniProject
             children[0] = left;
             children[1] = right;
             Height = 1;
+            Occurency = 1;
         }
 
         public int Height
@@ -554,6 +525,18 @@ namespace MiniProject
             set
             {
                 height = value;
+            }
+        }
+
+        public int Occurency
+        {
+            get
+            {
+                return occurency;
+            }
+            set
+            {
+                occurency = value;
             }
         }
 
