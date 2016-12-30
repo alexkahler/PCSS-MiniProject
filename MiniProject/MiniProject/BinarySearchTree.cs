@@ -180,25 +180,25 @@ namespace Server
             node.Height = Max(GetNodeHeight(node.Left), GetNodeHeight(node.Right)) + 1;
             int balance = GetNodeBalance(node);
             
-            if (balance > 1 && comparer.Compare(value, node.Left.Value) < 0)
+            if (balance > 1 && comparer.Compare(value, node.Left.Key) < 0)
             {
                 node = RightRotate(node);
             }
-            else if (balance < -1 && comparer.Compare(value, node.Right.Value) > 0)
+            else if (balance < -1 && comparer.Compare(value, node.Right.Key) > 0)
             {
                 node = LeftRotate(node);
             }
-            else if (balance > 1 && comparer.Compare(value, node.Left.Value) > 0)
+            else if (balance > 1 && comparer.Compare(value, node.Left.Key) > 0)
             {
                 node.Left = LeftRotate(node.Left);
                 node = RightRotate(node);
             }
-            else if (balance < -1 && comparer.Compare(value, node.Right.Value) < 0)
+            else if (balance < -1 && comparer.Compare(value, node.Right.Key) < 0)
             {
                 node.Right = RightRotate(node.Right);
                 node = LeftRotate(node);
-            }
-            */
+            }*/
+            
             return node;
         }
 
@@ -384,7 +384,7 @@ namespace Server
         public String PrintTree(TraversalMethods method, TraversalDirection direction)
         {
             String temp = PrintTree(method, direction, Root, "");
-            return temp.TrimEnd(new char[] { ',' });
+            return temp.Remove(temp.Length-2);
         }
 
         private String PrintTree(TraversalMethods method, TraversalDirection direction, Node<K, V> currentNode, String result)
@@ -437,7 +437,7 @@ namespace Server
                         if (currentNode != null)
                         {
                             result = PrintTree(method, direction, currentNode.Right, result);
-                            result = result + currentNode.Key + " " + currentNode.Value + ", ";
+                            result = result + currentNode.Value + " " + currentNode.Key + ", ";
                             result = PrintTree(method, direction, currentNode.Left, result);
                         }
                         break;

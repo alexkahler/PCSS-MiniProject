@@ -101,7 +101,7 @@ namespace Server
                 Console.WriteLine("Got data from client: " + sData);
                 if (sData.StartsWith("post"))
                 {
-                    ReceivedData.Add(sData.TrimStart(new char[] { 'p', 'o', 's', 't' }));
+                    ReceivedData.Add(sData.TrimStart(new char[] { 'p', 'o', 's', 't', ' ' }));
                 }
                 else if (sData.StartsWith("get"))
                 {
@@ -132,12 +132,12 @@ namespace Server
                             case "BT":
                                 {
                                     IEnumerable<IGrouping<string, string>> groupCount = splitString.GroupBy(w => w);
-                                    BinaryTree<string, int> bt = new BinaryTree<string, int>();
+                                    BinaryTree<int, string> bt = new BinaryTree<int, string>();
                                     foreach (IGrouping<string, string> group in groupCount)
                                     {
-                                        bt.Add(group.Key, group.Count());
+                                        bt.Add(group.Count(), group.Key);
                                     }
-                                    sWriter.WriteLine(bt.PrintTree(BinaryTree<string, int>.TraversalMethods.Inorder, BinaryTree<string, int>.TraversalDirection.Backwards));
+                                    sWriter.WriteLine(bt.PrintTree(BinaryTree<int, string>.TraversalMethods.Inorder, BinaryTree<int, string>.TraversalDirection.Backwards));
                                     break;
                                 }
                             case "QS":
