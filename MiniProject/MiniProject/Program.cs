@@ -10,6 +10,8 @@ namespace Server
     {
         static void Main(string[] args)
         {
+            TestBST();
+            return;
             Console.WriteLine("Multi-Threaded TCP Server started...");
             Console.WriteLine("Provide IP or blank to use default (localhost):");
             String ip = Console.ReadLine();
@@ -25,23 +27,31 @@ namespace Server
                 port = 58008;
             }
             new TCPServer(ip, port);
-            //TestBST();
+            
         }
 
         static void TestBST()
         {
-            BinaryTree<int, string> bt = new BinaryTree<int, string>();
+            BinaryTree<int, int> bt = new BinaryTree<int, int>();
             Random rand = new Random();
-            int min, max, r;
-            min = max = r = rand.Next(6);
-            for (int i = 0; i < 10; i++)
+            int min, max, k, v;
+            min = max = k = rand.Next(6);
+            for (int i = 0; i < 20; i++)
             {
-                r = rand.Next(5);
-                min = (min < r) ? min : r;
-                max = (max > r) ? max : r;
-                Console.WriteLine("Adding: " + r + ". Min: " + min + ". Max: " + max);
-                bt.Add(r, rand.Next(10) + "");
+                k = rand.Next(6);
+                v = rand.Next(6);
+                min = (min < k) ? min : k;
+                max = (max > k) ? max : k;
+                Console.WriteLine("Adding: " + k + "  " + v + ". Min: " + min + ". Max: " + max);
+                bt.Add(k, v);
             }
+            Console.WriteLine("Printing tree: " + bt.PrintTree());
+            k = rand.Next(6);
+            v = rand.Next(6);
+            Console.WriteLine("Removing: " + k + " " + v + ". Result: " + bt.Remove(k, v));
+            k = rand.Next(6);
+            v = rand.Next(6);
+            Console.WriteLine("Removing: " + k + " " + v + ". Result: " + bt.Remove(k, v));
             Console.WriteLine("Printing tree: " + bt.PrintTree());
             Console.WriteLine("Is BST?: " + bt.isBST(min, max));
             Console.ReadLine();

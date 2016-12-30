@@ -3,7 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-
+/**
+  * So this BinaryTree started out only accepting a single Type <T> and implemented ICollection, ICollection<T> 
+  * and IEnumberable<T> to make use of their interface methods for better collection handling. Unfortunately,
+  * the project needed to sort a word and their occurences after occurences - and as BinaryTrees don't allow for
+  * multiple duplicate nodes (multiple word can have only 1 occurence) then I retrofitted it to handle a Key and 
+  * a Value pair (the word = value, the occurence = key).
+  * This is why the AVL balancing method was commented out and the implemented interfaces were removed, as I couldn't make it work reliably when the tree had
+  * keys that were equal and the Key Value doesn't adhere to the provided interface methods.
+  * 
+  * Furture improvement could be made by implementing IDictionairy interface.
+ **/
 namespace Server
 {
     public class BinaryTree<K, V> : IEnumerable
@@ -176,28 +186,28 @@ namespace Server
             }
 
             //Does unfortunately not work with this binary tree, where each node has a Key-Value pair :(
-            /*
+            
             node.Height = Max(GetNodeHeight(node.Left), GetNodeHeight(node.Right)) + 1;
             int balance = GetNodeBalance(node);
             
-            if (balance > 1 && comparer.Compare(value, node.Left.Key) < 0)
+            if (balance > 1 && comparer.Compare(value, node.Left.Value) < 0 && comparer.Compare(key, node.Left.Key) < 0)
             {
                 node = RightRotate(node);
             }
-            else if (balance < -1 && comparer.Compare(value, node.Right.Key) > 0)
+            else if (balance < -1 && comparer.Compare(value, node.Right.Value) > 0 && comparer.Compare(key, node.Right.Key) > 0)
             {
                 node = LeftRotate(node);
             }
-            else if (balance > 1 && comparer.Compare(value, node.Left.Key) > 0)
+            else if (balance > 1 && comparer.Compare(value, node.Left.Value) > 0 && comparer.Compare(key, node.Left.Key) > 0)
             {
                 node.Left = LeftRotate(node.Left);
                 node = RightRotate(node);
             }
-            else if (balance < -1 && comparer.Compare(value, node.Right.Key) < 0)
+            else if (balance < -1 && comparer.Compare(value, node.Right.Value) < 0 && comparer.Compare(key, node.Right.Key) < 0)
             {
                 node.Right = RightRotate(node.Right);
                 node = LeftRotate(node);
-            }*/
+            }
             
             return node;
         }
@@ -267,7 +277,7 @@ namespace Server
             return isBST(node.Left, minValue, node.Key) && isBST(node.Right, node.Key, maxValue);
         }
 
-        public Boolean Remove(K key)
+        public Boolean Remove(K key, V value)
         {
             if (root == null)
             {
@@ -278,8 +288,9 @@ namespace Server
             Node<K, V> parent = null;
 
             int result = comparer.Compare(current.Key, key);
-            while (result != 0)
+            while (current != null)
             {
+                result = comparer.Compare(current.Key, key);
                 if (result > 0)
                 {
                     parent = current;
@@ -290,14 +301,28 @@ namespace Server
                     parent = current;
                     current = current.Right;
                 }
-                if (current == null)
+                else if (result == 0)
                 {
-                    return false;
+                    result = comparer.Compare(current.Value, value);
+                    if (result > 0)
+                    {
+                        parent = current;
+                        current = current.Left;
+                    }
+                    else if (result < 0)
+                    {
+                        parent = current;
+                        current = current.Right;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
-                else
-                {
-                    result = comparer.Compare(current.Key, key);
-                }
+            }
+            if (current == null)
+            {
+                return false;
             }
             count--;
 
