@@ -10,7 +10,7 @@ namespace InputClient
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Input Client:");
+            Console.WriteLine("Input Client started...");
             //Console.WriteLine("Provide IP:");
             //String ip = Console.ReadLine();
 
@@ -18,6 +18,12 @@ namespace InputClient
             //int port = Int32.Parse(Console.ReadLine());
 
             Client client = new Client("127.0.0.1", 58008);
+            Console.WriteLine("Press 'R' to reconnect...");
+            while (Console.ReadLine().ToLower().Equals("r"))
+            {
+                new Client("127.0.0.1", 58008);
+                Console.WriteLine("Press 'r' to reconnect...");
+            }
         }
     }
 
@@ -34,7 +40,7 @@ namespace InputClient
         {
             _client = new TcpClient();
             _client.Connect(ipAddress, portNum);
-
+            Console.WriteLine("Connected to server...");
             HandleCommunication();
         }
 
@@ -47,8 +53,7 @@ namespace InputClient
             String input = null;
             while (_isConnected)
             {
-                //Console.Write("&gt; ");
-
+                Console.WriteLine("Enter a sentence...");
                 //input = Console.ReadLine();
                 input = "POST Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tempus lacus vitae odio ullamcorper tempor. " +
                     "Nulla suscipit dolor id libero lacinia, et vulputate arcu varius. Donec varius eleifend ante vel facilisis. " +
@@ -67,12 +72,21 @@ namespace InputClient
                 // write data and make sure to flush, or the buffer will continue to 
                 // grow, and your data might not be sent when you want it, and will
                 // only be sent once the buffer is filled.
+                Console.WriteLine("Sending data...");
                 _sWriter.WriteLine(input);
                 _sWriter.Flush();
-
+                Console.WriteLine("Data sent.");
+                Console.WriteLine("Press 'R' to retry...");
+                if (!Console.ReadLine().ToLower().Equals("r"))
+                {
+                    _isConnected = false;
+                }
                 // if you want to receive anything
                 // String sDataIncomming = _sReader.ReadLine();
             }
+            _sReader.Close();
+            _sWriter.Close();
+            Console.WriteLine("Connection closed.");
         }
     }
 }

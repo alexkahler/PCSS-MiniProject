@@ -10,7 +10,7 @@ namespace Server
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Multi-Threaded TCP Server starting");
+            Console.WriteLine("Multi-Threaded TCP Server started...");
             TCPServer server = new TCPServer(58008);
             //TestBST();
         }

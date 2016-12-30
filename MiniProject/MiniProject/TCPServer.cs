@@ -50,6 +50,7 @@ class TCPServer
             server.Start();
 
             IsRunning = true;
+            Console.WriteLine("Waiting for connection...");
             LoopClients();
         }
 
@@ -58,7 +59,9 @@ class TCPServer
             while (IsRunning)
             {
                 // wait for client connection
+                
                 TcpClient newClient = server.AcceptTcpClient();
+                Console.WriteLine("Found client...");
 
                 // client found.
                 // create a thread to handle communication
@@ -72,33 +75,44 @@ class TCPServer
             // retrieve client from parameter passed to thread
             TcpClient client = (TcpClient)obj;
 
-            // sets two streams
+            // set two streams
             StreamWriter sWriter = new StreamWriter(client.GetStream(), Encoding.ASCII);
             StreamReader sReader = new StreamReader(client.GetStream(), Encoding.ASCII);
-            // you could use the NetworkStream to read and write, 
-            // but there is no forcing flush, even when requested
 
             Boolean isConnected = true;
-            String sData = null;
+            String sData;
 
             while (isConnected)
             {
                 // reads from stream
-                sData = sReader.ReadLine();
-                if (sData.StartsWith("POST"))
+                try
                 {
-                    ReceivedData.Add(sData.TrimStart(new char[] { 'P', 'O', 'S', 'T' }));
+                    sData = sReader.ReadLine();
+                    if (sData == null)
+                    {
+                        break;
+                    }
                 }
-                else if (sData.StartsWith("GET"))
+                catch (IOException e)
+                {
+                    Console.WriteLine(e.Message);
+                    break;
+                }
+                Console.WriteLine("Got data from client: " + sData);
+                if (sData.StartsWith("post"))
+                {
+                    ReceivedData.Add(sData.TrimStart(new char[] { 'p', 'o', 's', 't' }));
+                }
+                else if (sData.StartsWith("get"))
                 {
                     if (ReceivedData.Count == 0)
                     {
-                        sWriter.WriteLine("No data left");
+                        sWriter.WriteLine("None available.");
                     }
                     else
                     {
                         string[] splitString = ReceivedData[ReceivedData.Count - 1].Split(new char[] { ' ' });
-
+                        ReceivedData.RemoveAt(ReceivedData.Count - 1);
                         //"GET QS / BT / BS lorem ipsum
                         string[] method = sData.Split(new char[] { ' ' });
                         switch (method[1])
@@ -171,8 +185,9 @@ class TCPServer
 
                 }
                 sWriter.Flush();
-                sWriter.Close();
             }
+            Console.WriteLine("Closed connection to client.");
+            
         }
 
     }
