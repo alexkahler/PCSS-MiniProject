@@ -10,17 +10,24 @@ namespace OutputClient
         static void Main(string[] args)
         {
             Console.WriteLine("Output Client started...");
-            //Console.WriteLine("Provide IP:");
-            //String ip = Console.ReadLine();
+            Console.WriteLine("Provide IP or 'Enter' to use default (localhost):");
+            String ip = Console.ReadLine();
 
-            //Console.WriteLine("Provide Port:");
-            //int port = Int32.Parse(Console.ReadLine());
-
-            Client client = new Client("127.0.0.1", 58008);
+            Console.WriteLine("Provide Port or 'Enter' to use default (58008):");
+            int port = Int32.Parse(Console.ReadLine() + 0);
+            if (ip == "")
+            {
+                ip = "127.0.0.1";
+            }
+            if (port == 0)
+            {
+                port = 58008;
+            }
+            new Client(ip, port);
             Console.WriteLine("Press 'R' to reconnect...");
             while (Console.ReadLine().ToLower().Equals("r"))
             {
-                new Client("127.0.0.1", 58008);
+                new Client(ip, port);
                 Console.WriteLine("Press 'R' to reconnect...");
             }
         }
@@ -39,7 +46,7 @@ namespace OutputClient
         {
             _client = new TcpClient();
             _client.Connect(ipAddress, portNum);
-            Console.WriteLine("Connected to server...");
+            Console.WriteLine("Connected to server (" + ipAddress + ":" + portNum + ")...");
             HandleCommunication();
         }
 
@@ -57,13 +64,13 @@ namespace OutputClient
                 switch (command)
                 {
                     case "bt":
-                        sData = "get BT";
+                        sData = "GET BT";
                         break;
                     case "bs":
-                        sData = "get BS";
+                        sData = "GET BS";
                         break;
                     case "qs":
-                        sData = "get QS";
+                        sData = "GET QS";
                         break;
                     case "e":
                         _sReader.Close();
@@ -74,12 +81,9 @@ namespace OutputClient
                         Console.WriteLine("Invalid option...");
                         break;
                 }
-                if (sData == "get BT" || sData == "get BS" || sData == "get QS")
+                if (command == "bt" || command == "bs" || command == "qs")
                 {
                     Console.WriteLine("Sending data...");
-                    // write data and make sure to flush, or the buffer will continue to 
-                    // grow, and your data might not be sent when you want it, and will
-                    // only be sent once the buffer is filled.
                     _sWriter.WriteLine(sData);
                     _sWriter.Flush();
 

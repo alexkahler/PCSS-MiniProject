@@ -52,7 +52,7 @@ namespace Server
             }
         }
 
-        public enum TraversalMethods { Preorder = -1, Inorder = 0, Postorder = 1 };
+        public enum TraversalMethod { Preorder = -1, Inorder = 0, Postorder = 1 };
         public enum TraversalDirection { Forwards = 0, Backwards = 1 };
 
         private List<K> InorderTraversal(Node<K, V> currentNode, List<K> result)
@@ -378,22 +378,22 @@ namespace Server
 
         public String PrintTree()
         {
-            return PrintTree(TraversalMethods.Inorder, TraversalDirection.Forwards);
+            return PrintTree(TraversalMethod.Inorder, TraversalDirection.Forwards);
         }
 
-        public String PrintTree(TraversalMethods method, TraversalDirection direction)
+        public String PrintTree(TraversalMethod method, TraversalDirection direction)
         {
             String temp = PrintTree(method, direction, Root, "");
             return temp.Remove(temp.Length-2);
         }
 
-        private String PrintTree(TraversalMethods method, TraversalDirection direction, Node<K, V> currentNode, String result)
+        private String PrintTree(TraversalMethod method, TraversalDirection direction, Node<K, V> currentNode, String result)
         {
             if (direction == TraversalDirection.Forwards)
             {
                 switch (method)
                 {
-                    case TraversalMethods.Preorder:
+                    case TraversalMethod.Preorder:
                         if (currentNode != null)
                         {
                             result = result + currentNode.Key + " " + currentNode.Value + ", ";
@@ -402,7 +402,7 @@ namespace Server
                         }
                         break;
                     default:
-                    case TraversalMethods.Inorder:
+                    case TraversalMethod.Inorder:
                         if (currentNode != null)
                         {
                             result = PrintTree(method, direction, currentNode.Left, result);
@@ -410,7 +410,7 @@ namespace Server
                             result = PrintTree(method, direction, currentNode.Right, result);
                         }
                         break;
-                    case TraversalMethods.Postorder:
+                    case TraversalMethod.Postorder:
                         if (currentNode != null)
                         {
                             result = PrintTree(method, direction, currentNode.Left, result);
@@ -424,7 +424,7 @@ namespace Server
             {
                 switch (method)
                 {
-                    case TraversalMethods.Preorder:
+                    case TraversalMethod.Preorder:
                         if (currentNode != null)
                         {
                             result = result + currentNode.Key + " " + currentNode.Value + ", ";
@@ -433,7 +433,7 @@ namespace Server
                         }
                         break;
                     default:
-                    case TraversalMethods.Inorder:
+                    case TraversalMethod.Inorder:
                         if (currentNode != null)
                         {
                             result = PrintTree(method, direction, currentNode.Right, result);
@@ -441,7 +441,7 @@ namespace Server
                             result = PrintTree(method, direction, currentNode.Left, result);
                         }
                         break;
-                    case TraversalMethods.Postorder:
+                    case TraversalMethod.Postorder:
                         if (currentNode != null)
                         {
                             result = PrintTree(method, direction, currentNode.Right, result);
@@ -456,10 +456,10 @@ namespace Server
 
         public void CopyTo(K[] array, int arrayIndex)
         {
-            CopyTo(array, arrayIndex, TraversalMethods.Inorder);
+            CopyTo(array, arrayIndex, TraversalMethod.Inorder);
         }
 
-        public void CopyTo(K[] array, int arrayIndex, TraversalMethods method)
+        public void CopyTo(K[] array, int arrayIndex, TraversalMethod method)
         {
             if (Root == null)
             {
@@ -467,37 +467,37 @@ namespace Server
             }
             switch (method)
             {
-                case TraversalMethods.Preorder:
+                case TraversalMethod.Preorder:
                     PreorderTraversal(Root, new List<K>()).CopyTo(array, arrayIndex);
                     break;
                 default:
-                case TraversalMethods.Inorder:
+                case TraversalMethod.Inorder:
                     InorderTraversal(Root, new List<K>()).CopyTo(array, arrayIndex);
                     break;
-                case TraversalMethods.Postorder:
+                case TraversalMethod.Postorder:
                     PostorderTraversal(Root, new List<K>()).CopyTo(array, arrayIndex);
                     break;
             }
             Dictionary<string, string> d = new Dictionary<string, string>();
         }
 
-        public IEnumerator<K> GetEnumerator(TraversalMethods method)
+        public IEnumerator<K> GetEnumerator(TraversalMethod method)
         {
             switch (method)
             {
-                case TraversalMethods.Preorder:
+                case TraversalMethod.Preorder:
                     return new BinaryTreeEnumerator<K>(PreorderTraversal(Root, new List<K>()).ToArray());
                 default:
-                case TraversalMethods.Inorder:
+                case TraversalMethod.Inorder:
                     return new BinaryTreeEnumerator<K>(InorderTraversal(Root, new List<K>()).ToArray());
-                case TraversalMethods.Postorder:
+                case TraversalMethod.Postorder:
                     return new BinaryTreeEnumerator<K>(PostorderTraversal(Root, new List<K>()).ToArray());
             }
         }
 
         public IEnumerator<K> GetEnumerator()
         {
-            return GetEnumerator(TraversalMethods.Inorder);
+            return GetEnumerator(TraversalMethod.Inorder);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

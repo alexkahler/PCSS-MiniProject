@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -42,10 +43,10 @@ namespace Server
             }
         }
 
-        public TCPServer(int port)
+        public TCPServer(string ipString, int port)
         {
             ReceivedData = new List<String>();
-            IPAddress ip = IPAddress.Parse("127.0.0.1");
+            IPAddress ip = IPAddress.Parse(ipString);
             server = new TcpListener(ip, port);
             server.Start();
 
@@ -99,11 +100,11 @@ namespace Server
                     break;
                 }
                 Console.WriteLine("Got data from client: " + sData);
-                if (sData.StartsWith("post"))
+                if (sData.StartsWith("POST"))
                 {
-                    ReceivedData.Add(sData.TrimStart(new char[] { 'p', 'o', 's', 't', ' ' }));
+                    ReceivedData.Add(sData.TrimStart(new char[] { 'P', 'O', 'S', 'T', ' ' }));
                 }
-                else if (sData.StartsWith("get"))
+                else if (sData.StartsWith("GET"))
                 {
                     if (ReceivedData.Count == 0)
                     {
@@ -115,17 +116,28 @@ namespace Server
                         ReceivedData.RemoveAt(ReceivedData.Count - 1);
                         //"GET QS / BT / BS lorem ipsum
                         string[] method = sData.Split(new char[] { ' ' });
+                        Stopwatch stopWatch = new Stopwatch();
+                        stopWatch.Start();
                         switch (method[1])
                         {
                             case "BS":
                                 {
-                                    splitString = BubbleSort.Sort(splitString);
+                                    
                                     IEnumerable<IGrouping<string, string>> groupCount = splitString.GroupBy(w => w);
-                                    String s = "";
+                                    List<Bubble> bubbles = new List<Bubble>();
                                     foreach (IGrouping<string, string> group in groupCount)
                                     {
-                                        s = s + group.Key + " " + group.Count() + ", ";
+                                        bubbles.Add(new Bubble(group.Key, group.Count()));
                                     }
+                                    bubbles = BubbleSort.Sort(bubbles);
+                                    string s = "";
+                                    foreach (Bubble b in bubbles)
+                                    {
+                                        s = s + b.Word + " " + b.Count + ", ";
+                                    }
+                                    s = s.TrimEnd(new char[] { ',', ' ' });
+                                    stopWatch.Stop();
+                                    Console.WriteLine("BubbleSort finished sorting in: " + stopWatch.ElapsedMilliseconds);
                                     sWriter.WriteLine(s);
                                     break;
                                 }
@@ -137,16 +149,17 @@ namespace Server
                                     {
                                         bt.Add(group.Count(), group.Key);
                                     }
-                                    sWriter.WriteLine(bt.PrintTree(BinaryTree<int, string>.TraversalMethods.Inorder, BinaryTree<int, string>.TraversalDirection.Backwards));
+                                    stopWatch.Stop();
+                                    Console.WriteLine("BinaryTree finished sorting in: " + stopWatch.ElapsedMilliseconds);
+                                    sWriter.WriteLine(bt.PrintTree(BinaryTree<int, string>.TraversalMethod.Inorder, BinaryTree<int, string>.TraversalDirection.Backwards));
                                     break;
                                 }
                             case "QS":
                                 {
                                     QuickSort qs = new QuickSort();
                                     Dictionary<string, WordCount> wordCountDict = new Dictionary<string, WordCount>();
-                                    for (int i = 0; i < splitString.Length; i++)
+                                    foreach (string temp in splitString)
                                     {
-                                        string temp = splitString[i];
                                         if (wordCountDict.ContainsKey(temp))
                                         {
                                             wordCountDict[temp].Count++;
@@ -168,6 +181,8 @@ namespace Server
                                             s = s + ", ";
                                         }
                                     }
+                                    stopWatch.Stop();
+                                    Console.WriteLine("BinaryTree finished sorting in: " + stopWatch.ElapsedMilliseconds);
                                     sWriter.WriteLine(s);
                                     break;
                                 }

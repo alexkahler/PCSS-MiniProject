@@ -1,31 +1,45 @@
-﻿namespace Server
+﻿using System.Collections.Generic;
+
+namespace Server
 {
     class BubbleSort
     {
-        public static string[] Sort(string[] array)
+        public static List<Bubble> Sort(List<Bubble> bubbleList)
         {
-            int length = array.Length;
+            int length = bubbleList.Count;
 
-            string temp = array[0];
+            Bubble temp = bubbleList[0];
 
             for (int i = 0; i < length; i++)
             {
                 for (int j = i + 1; j < length; j++)
                 {
-                    if(array[i].CompareTo(array[j]) > 0) 
+                    if (bubbleList[i].Count < bubbleList[j].Count) 
                     {
-                        temp = array[i];
+                        temp = bubbleList[i];
 
-                        array[i] = array[j];
+                        bubbleList[i] = bubbleList[j];
 
-                        array[j] = temp;
+                        bubbleList[j] = temp;
                     }
 
                 }
 
             }
 
-            return array;
+            return bubbleList;
+        }
+    }
+
+    class Bubble
+    {
+        public string Word;
+        public int Count;
+
+        public Bubble(string word, int count)
+        {
+            this.Word = word;
+            this.Count = count;
         }
     }
 }
