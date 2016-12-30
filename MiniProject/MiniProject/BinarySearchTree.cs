@@ -2,22 +2,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 
 namespace Server
 {
-    public class BinaryTree<T> : ICollection<T>, IEnumerable, IEnumerable<T>
+    public class BinaryTree<K, V> : IEnumerable
     {
-        private Node<T> root;
-        private Comparer<T> comparer;
+        private Node<K, V> root;
+        private Comparer comparer;
         private int count;
 
         public BinaryTree()
         {
             root = null;
             count = 0;
-            comparer = Comparer<T>.Default;
+            comparer = Comparer.Default;
         }
 
         public void Clear()
@@ -25,7 +24,7 @@ namespace Server
             root = null;
         }
 
-        private Node<T> Root
+        private Node<K, V> Root
         {
             get
             {
@@ -54,63 +53,76 @@ namespace Server
         }
 
         public enum TraversalMethods { Preorder = -1, Inorder = 0, Postorder = 1 };
+        public enum TraversalDirection { Forwards = 0, Backwards = 1 };
 
-        private List<T> InorderTraversal(Node<T> currentNode, List<T> result)
+        private List<K> InorderTraversal(Node<K, V> currentNode, List<K> result)
         {
             if (result == null)
             {
-                result = new List<T>();
+                result = new List<K>();
             }
             if (currentNode != null)
             {
                 InorderTraversal(currentNode.Left, result);
-                result.Add(currentNode.Value);
+                result.Add(currentNode.Key);
                 InorderTraversal(currentNode.Right, result);
             }
             return result;
         }
 
-        private List<T> PreorderTraversal(Node<T> currentNode, List<T> result)
+        private List<K> PreorderTraversal(Node<K, V> currentNode, List<K> result)
         {
             if (result == null)
             {
-                result = new List<T>();
+                result = new List<K>();
             }
             if (currentNode != null)
             {
-                result.Add(currentNode.Value);
+                result.Add(currentNode.Key);
                 PreorderTraversal(currentNode.Left, result);
                 PreorderTraversal(currentNode.Right, result);
             }
             return result;
         }
 
-        private List<T> PostorderTraversal(Node<T> currentNode, List<T> result)
+        private List<K> PostorderTraversal(Node<K, V> currentNode, List<K> result)
         {
             if (result == null)
             {
-                result = new List<T>();
+                result = new List<K>();
             }
             if (currentNode != null)
             {
                 PostorderTraversal(currentNode.Left, result);
                 PostorderTraversal(currentNode.Right, result);
-                result.Add(currentNode.Value);
+                result.Add(currentNode.Key);
             }
             return result;
 
         }
 
-        public Boolean Contains(T data)
+        public Boolean Contains(K key, V value)
         {
-            Node<T> current = root;
+            Node<K, V> current = root;
             int result;
             while (current != null)
             {
-                result = comparer.Compare(current.Value, data);
+                result = comparer.Compare(current.Key, key);
                 if (result == 0)
                 {
-                    return true;
+                    result = comparer.Compare(current.Value, value);
+                    if(result > 0)
+                    {
+                        current = current.Left;
+                    }
+                    else if (result < 0)
+                    {
+                        current = current.Right;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
                 else if (result > 0)
                 {
@@ -124,77 +136,91 @@ namespace Server
             return false;
         }
 
-        public void Add(T data)
+        public void Add(K key, V value)
         {
-            Root = Add(data, Root);
+            Root = Add(key, value, Root);
         }
 
-        private Node<T> Add(T data, Node<T> node)
+        private Node<K, V> Add(K key, V value, Node<K, V> node)
         {
             if (node == null)
             {
                 count++;
-                return (new Node<T>(data));
+                return (new Node<K, V>(key, value));
             }
 
-            int result = comparer.Compare(node.Value, data);
-            if (result == 0)
+            int keyResult = comparer.Compare(node.Key, key);
+            if (keyResult == 0)
             {
-                node.Occurency++;
-                return node; // Already exists, so just back out.
+                int valueResult = comparer.Compare(node.Value, value);
+                if (valueResult > 0)
+                {
+                    node.Left = Add(key, value, node.Left);
+                }
+                else if (valueResult < 0)
+                {
+                    node.Right = Add(key, value, node.Right);
+                }
+                else
+                {
+                    return node; // Already exists, so just back out.
+                }
             }
-            else if (result > 0)
+            else if (keyResult > 0)
             {
-                node.Left = Add(data, node.Left);
+                node.Left = Add(key, value, node.Left);
             }
-            else if (result < 0)
+            else if (keyResult < 0)
             {
-                node.Right = Add(data, node.Right);
+                node.Right = Add(key, value, node.Right);
             }
-            
+
+            //Does unfortunately not work with this binary tree, where each node has a Key-Value pair :(
+            /*
             node.Height = Max(GetNodeHeight(node.Left), GetNodeHeight(node.Right)) + 1;
             int balance = GetNodeBalance(node);
             
-            if (balance > 1 && comparer.Compare(data, node.Left.Value) < 0)
+            if (balance > 1 && comparer.Compare(value, node.Left.Value) < 0)
             {
                 node = RightRotate(node);
             }
-            else if (balance < -1 && comparer.Compare(data, node.Right.Value) > 0)
+            else if (balance < -1 && comparer.Compare(value, node.Right.Value) > 0)
             {
                 node = LeftRotate(node);
             }
-            else if (balance > 1 && comparer.Compare(data, node.Left.Value) > 0)
+            else if (balance > 1 && comparer.Compare(value, node.Left.Value) > 0)
             {
                 node.Left = LeftRotate(node.Left);
                 node = RightRotate(node);
             }
-            else if (balance < -1 && comparer.Compare(data, node.Right.Value) < 0)
+            else if (balance < -1 && comparer.Compare(value, node.Right.Value) < 0)
             {
                 node.Right = RightRotate(node.Right);
                 node = LeftRotate(node);
             }
+            */
             return node;
         }
 
-        private Node<T> RightRotate(Node<T> Q)
+        private Node<K, V> RightRotate(Node<K, V> Q)
         {
             // v.2
-            Node<T> P = Q.Left; // P = new root
-            Node<T> B = Q.Left.Right; // B = P's right child (Q grandchild) > Q's left child
+            Node<K, V> P = Q.Left; // P = new root
+            Node<K, V> B = Q.Left.Right; // B = P's right child (Q grandchild) > Q's left child
 
             P.Right = Q;
             Q.Left = B;
-              
+
             Q.Height = Max(GetNodeHeight(Q.Left), GetNodeHeight(Q.Right)) + 1;
             P.Height = Max(GetNodeHeight(P.Left), GetNodeHeight(P.Right)) + 1;
 
             return P;
         }
 
-        private Node<T> LeftRotate(Node<T> P)
+        private Node<K, V> LeftRotate(Node<K, V> P)
         {
-            Node<T> Q = P.Right;
-            Node<T> B = Q.Left;
+            Node<K, V> Q = P.Right;
+            Node<K, V> B = Q.Left;
 
             Q.Left = P;
             P.Right = B;
@@ -205,14 +231,14 @@ namespace Server
             return Q;
         }
 
-        private int GetNodeBalance(Node<T> node)
+        private int GetNodeBalance(Node<K, V> node)
         {
             if (node == null)
                 return 0;
             return GetNodeHeight(node.Left) - GetNodeHeight(node.Right);
         }
 
-        private int GetNodeHeight(Node<T> node)
+        private int GetNodeHeight(Node<K, V> node)
         {
             if (node == null)
                 return 0;
@@ -224,34 +250,34 @@ namespace Server
             return (a > b) ? a : b;
         }
 
-        public Boolean isBST(T minValue, T maxValue)
+        public Boolean isBST(K minValue, K maxValue)
         {
             return isBST(Root, minValue, maxValue);
         }
 
-        private Boolean isBST(Node<T> node, T minValue, T maxValue)
+        private Boolean isBST(Node<K, V> node, K minValue, K maxValue)
         {
             if (node == null)
                 return true;
-            if (comparer.Compare(node.Value, minValue) < 0 || comparer.Compare(node.Value, maxValue) > 0)
+            if (comparer.Compare(node.Key, minValue) < 0 || comparer.Compare(node.Key, maxValue) > 0)
             {
-                Console.WriteLine("Found an invalid node: " + node.Value);
+                Console.WriteLine("Found an invalid node: " + node.Key);
                 return false;
             }
-            return isBST(node.Left, minValue, node.Value) && isBST(node.Right, node.Value, maxValue);
+            return isBST(node.Left, minValue, node.Key) && isBST(node.Right, node.Key, maxValue);
         }
 
-        public Boolean Remove(T data)
+        public Boolean Remove(K key)
         {
             if (root == null)
             {
                 return false;
             }
 
-            Node<T> current = root;
-            Node<T> parent = null;
+            Node<K, V> current = root;
+            Node<K, V> parent = null;
 
-            int result = comparer.Compare(current.Value, data);
+            int result = comparer.Compare(current.Key, key);
             while (result != 0)
             {
                 if (result > 0)
@@ -270,7 +296,7 @@ namespace Server
                 }
                 else
                 {
-                    result = comparer.Compare(current.Value, data);
+                    result = comparer.Compare(current.Key, key);
                 }
             }
             count--;
@@ -283,7 +309,7 @@ namespace Server
                 }
                 else
                 {
-                    result = comparer.Compare(parent.Value, current.Value);
+                    result = comparer.Compare(parent.Key, current.Key);
                     if (result > 0)
                     {
                         parent.Left = current.Left;
@@ -304,7 +330,7 @@ namespace Server
                 }
                 else
                 {
-                    result = comparer.Compare(parent.Value, current.Value);
+                    result = comparer.Compare(parent.Key, current.Key);
                     if (result > 0)
                     {
                         parent.Left = current.Right;
@@ -317,8 +343,8 @@ namespace Server
             }
             else
             {
-                Node<T> leftNode = current.Right.Left;
-                Node<T> leftNodeParent = current.Right;
+                Node<K, V> leftNode = current.Right.Left;
+                Node<K, V> leftNodeParent = current.Right;
                 while (leftNode.Left != null)
                 {
                     leftNodeParent = leftNode;
@@ -336,7 +362,7 @@ namespace Server
                 }
                 else
                 {
-                    result = comparer.Compare(parent.Value, current.Value);
+                    result = comparer.Compare(parent.Key, current.Key);
                     if (result > 0)
                     {
                         parent.Left = leftNode;
@@ -352,54 +378,88 @@ namespace Server
 
         public String PrintTree()
         {
-            return PrintTree(TraversalMethods.Inorder);
+            return PrintTree(TraversalMethods.Inorder, TraversalDirection.Forwards);
         }
 
-        public String PrintTree(TraversalMethods method)
+        public String PrintTree(TraversalMethods method, TraversalDirection direction)
         {
-            return PrintTree(method, Root, "");
+            String temp = PrintTree(method, direction, Root, "");
+            return temp.TrimEnd(new char[] { ',' });
         }
 
-        private String PrintTree(TraversalMethods method, Node<T> currentNode, String result)
+        private String PrintTree(TraversalMethods method, TraversalDirection direction, Node<K, V> currentNode, String result)
         {
-            switch (method)
+            if (direction == TraversalDirection.Forwards)
             {
-                case TraversalMethods.Preorder:
-                    if (currentNode != null)
-                    {
-                        result = result + currentNode.Value + " " + currentNode.Occurency + ", ";
-                        result = PrintTree(method, currentNode.Left, result);
-                        result = PrintTree(method, currentNode.Right, result);
-                    }
-                    break;
-                default:
-                case TraversalMethods.Inorder:
-                    if (currentNode != null)
-                    {
-                        result = PrintTree(method, currentNode.Left, result);
-                        result = result + currentNode.Value + " " + currentNode.Occurency + ", ";
-                        result = PrintTree(method, currentNode.Right, result);
-                    }
-                    break;
-                case TraversalMethods.Postorder:
-                    if (currentNode != null)
-                    {
-                        result = PrintTree(method, currentNode.Left, result);
-                        result = PrintTree(method, currentNode.Right, result);
-                        result = result + currentNode.Value + " " + currentNode.Occurency + ", ";
-                    }
-                    break;
+                switch (method)
+                {
+                    case TraversalMethods.Preorder:
+                        if (currentNode != null)
+                        {
+                            result = result + currentNode.Key + " " + currentNode.Value + ", ";
+                            result = PrintTree(method, direction, currentNode.Left, result);
+                            result = PrintTree(method, direction, currentNode.Right, result);
+                        }
+                        break;
+                    default:
+                    case TraversalMethods.Inorder:
+                        if (currentNode != null)
+                        {
+                            result = PrintTree(method, direction, currentNode.Left, result);
+                            result = result + currentNode.Key + " " + currentNode.Value + ", ";
+                            result = PrintTree(method, direction, currentNode.Right, result);
+                        }
+                        break;
+                    case TraversalMethods.Postorder:
+                        if (currentNode != null)
+                        {
+                            result = PrintTree(method, direction, currentNode.Left, result);
+                            result = PrintTree(method, direction, currentNode.Right, result);
+                            result = result + currentNode.Key + " " + currentNode.Value + ", ";
+                        }
+                        break;
+                }
             }
-            return result.TrimEnd(new char[] { ',' });
-
+            else
+            {
+                switch (method)
+                {
+                    case TraversalMethods.Preorder:
+                        if (currentNode != null)
+                        {
+                            result = result + currentNode.Key + " " + currentNode.Value + ", ";
+                            result = PrintTree(method, direction, currentNode.Right, result);
+                            result = PrintTree(method, direction, currentNode.Left, result);
+                        }
+                        break;
+                    default:
+                    case TraversalMethods.Inorder:
+                        if (currentNode != null)
+                        {
+                            result = PrintTree(method, direction, currentNode.Right, result);
+                            result = result + currentNode.Key + " " + currentNode.Value + ", ";
+                            result = PrintTree(method, direction, currentNode.Left, result);
+                        }
+                        break;
+                    case TraversalMethods.Postorder:
+                        if (currentNode != null)
+                        {
+                            result = PrintTree(method, direction, currentNode.Right, result);
+                            result = PrintTree(method, direction, currentNode.Left, result);
+                            result = result + currentNode.Key + " " + currentNode.Value + ", ";
+                        }
+                        break;
+                }
+            }
+            return result;
         }
 
-        public void CopyTo(T[] array, int arrayIndex)
+        public void CopyTo(K[] array, int arrayIndex)
         {
             CopyTo(array, arrayIndex, TraversalMethods.Inorder);
         }
 
-        public void CopyTo(T[] array, int arrayIndex, TraversalMethods method)
+        public void CopyTo(K[] array, int arrayIndex, TraversalMethods method)
         {
             if (Root == null)
             {
@@ -408,33 +468,34 @@ namespace Server
             switch (method)
             {
                 case TraversalMethods.Preorder:
-                    PreorderTraversal(Root, new List<T>()).CopyTo(array, arrayIndex);
+                    PreorderTraversal(Root, new List<K>()).CopyTo(array, arrayIndex);
                     break;
                 default:
                 case TraversalMethods.Inorder:
-                    InorderTraversal(Root, new List<T>()).CopyTo(array, arrayIndex);
+                    InorderTraversal(Root, new List<K>()).CopyTo(array, arrayIndex);
                     break;
                 case TraversalMethods.Postorder:
-                    PostorderTraversal(Root, new List<T>()).CopyTo(array, arrayIndex);
+                    PostorderTraversal(Root, new List<K>()).CopyTo(array, arrayIndex);
                     break;
             }
+            Dictionary<string, string> d = new Dictionary<string, string>();
         }
 
-        public IEnumerator<T> GetEnumerator(TraversalMethods method)
+        public IEnumerator<K> GetEnumerator(TraversalMethods method)
         {
             switch (method)
             {
                 case TraversalMethods.Preorder:
-                    return new BinaryTreeEnumerator<T>(PreorderTraversal(Root, new List<T>()).ToArray());
+                    return new BinaryTreeEnumerator<K>(PreorderTraversal(Root, new List<K>()).ToArray());
                 default:
                 case TraversalMethods.Inorder:
-                    return new BinaryTreeEnumerator<T>(InorderTraversal(Root, new List<T>()).ToArray());
+                    return new BinaryTreeEnumerator<K>(InorderTraversal(Root, new List<K>()).ToArray());
                 case TraversalMethods.Postorder:
-                    return new BinaryTreeEnumerator<T>(PostorderTraversal(Root, new List<T>()).ToArray());
+                    return new BinaryTreeEnumerator<K>(PostorderTraversal(Root, new List<K>()).ToArray());
             }
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public IEnumerator<K> GetEnumerator()
         {
             return GetEnumerator(TraversalMethods.Inorder);
         }
@@ -501,25 +562,25 @@ namespace Server
     /*
      * Node class, which is used in BinaryTree
      */
-    public class Node<T>
+    public class Node<K, V>
     {
-        private T data;
+        private K key;
+        private V _value;
         private int height;
-        private int occurency;
-        private NodeList<T> children = null;
+        private NodeList<K, V> children = null;
 
         private Node() { } //No default constructor
 
-        public Node(T data) : this(data, null, null) { }
+        public Node(K key, V _value) : this(key, _value, null, null) { }
 
-        public Node(T data, Node<T> left, Node<T> right)
+        public Node(K key, V _value, Node<K, V> left, Node<K, V> right)
         {
-            this.data = data;
-            children = new NodeList<T>(2);
+            this.Key = key;
+            this.Value = _value;
+            children = new NodeList<K, V>(2);
             children[0] = left;
             children[1] = right;
             Height = 1;
-            Occurency = 1;
         }
 
         public int Height
@@ -534,31 +595,31 @@ namespace Server
             }
         }
 
-        public int Occurency
+        public V Value
         {
             get
             {
-                return occurency;
+                return _value;
             }
             set
             {
-                occurency = value;
+                this._value = value;
             }
         }
 
-        public T Value
+        public K Key
         {
             get
             {
-                return data;
+                return key;
             }
             set
             {
-                data = value;
+                key = value;
             }
         }
 
-        private NodeList<T> Children
+        private NodeList<K, V> Children
         {
             get
             {
@@ -570,7 +631,7 @@ namespace Server
             }
         }
 
-        public Node<T> Left
+        public Node<K, V> Left
         {
             get
             {
@@ -587,13 +648,13 @@ namespace Server
             {
                 if (Children == null)
                 {
-                    Children = new NodeList<T>(2);
+                    Children = new NodeList<K, V>(2);
                 }
                 Children[0] = value;
             }
         }
 
-        public Node<T> Right
+        public Node<K, V> Right
         {
             get
             {
@@ -610,14 +671,14 @@ namespace Server
             {
                 if (Children == null)
                 {
-                    Children = new NodeList<T>(2);
+                    Children = new NodeList<K, V>(2);
                 }
                 Children[1] = value;
             }
         }
     }
 
-    public class NodeList<T> : Collection<Node<T>>
+    public class NodeList<K, V> : Collection<Node<K, V>>
     {
         public NodeList() : base() { }
 
@@ -625,14 +686,14 @@ namespace Server
         {
             for (int i = 0; i < size; i++)
             {
-                base.Items.Add(default(Node<T>));
+                base.Items.Add(default(Node<K, V>));
 
             }
         }
 
-        public Node<T> FindByValue(T value)
+        public Node<K, V> FindByValue(V value)
         {
-            foreach (Node<T> node in Items)
+            foreach (Node<K, V> node in Items)
             {
                 if (node.Value.Equals(value))
                 {
@@ -643,4 +704,3 @@ namespace Server
         }
     }
 }
-

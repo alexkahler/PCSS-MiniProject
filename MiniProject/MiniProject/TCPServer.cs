@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace Server
 {
-class TCPServer
+    class TCPServer
     {
         private TcpListener server;
         private Boolean isRunning;
@@ -59,7 +59,7 @@ class TCPServer
             while (IsRunning)
             {
                 // wait for client connection
-                
+
                 TcpClient newClient = server.AcceptTcpClient();
                 Console.WriteLine("Found client...");
 
@@ -107,7 +107,7 @@ class TCPServer
                 {
                     if (ReceivedData.Count == 0)
                     {
-                        sWriter.WriteLine("None available.");
+                        sWriter.WriteLine("No words available.");
                     }
                     else
                     {
@@ -124,46 +124,46 @@ class TCPServer
                                     String s = "";
                                     foreach (IGrouping<string, string> group in groupCount)
                                     {
-                                        s = group.Key + " " + group.Count() + ", ";
+                                        s = s + group.Key + " " + group.Count() + ", ";
                                     }
                                     sWriter.WriteLine(s);
                                     break;
                                 }
                             case "BT":
                                 {
-                                    BinaryTree<String> bt = new BinaryTree<string>();
-                                    foreach (string s in splitString)
+                                    IEnumerable<IGrouping<string, string>> groupCount = splitString.GroupBy(w => w);
+                                    BinaryTree<string, int> bt = new BinaryTree<string, int>();
+                                    foreach (IGrouping<string, string> group in groupCount)
                                     {
-                                        bt.Add(s);
+                                        bt.Add(group.Key, group.Count());
                                     }
-                                    sWriter.WriteLine(bt.PrintTree(BinaryTree<string>.TraversalMethods.Inorder));
+                                    sWriter.WriteLine(bt.PrintTree(BinaryTree<string, int>.TraversalMethods.Inorder, BinaryTree<string, int>.TraversalDirection.Backwards));
                                     break;
                                 }
                             case "QS":
                                 {
                                     QuickSort qs = new QuickSort();
-                                    List<WordCount> wordCountList = new List<WordCount>();
-
+                                    Dictionary<string, WordCount> wordCountDict = new Dictionary<string, WordCount>();
                                     for (int i = 0; i < splitString.Length; i++)
                                     {
-                                        foreach(WordCount wc in wordCountList)
+                                        string temp = splitString[i];
+                                        if (wordCountDict.ContainsKey(temp))
                                         {
-                                            if(wc.Word.Equals(splitString[i]))
-                                            {
-                                                wc.Count++;
-                                            }
-                                            else
-                                            {
-                                                wordCountList.Add(new WordCount(splitString[i], 1));
-                                            }
+                                            wordCountDict[temp].Count++;
+                                        }
+                                        else
+                                        {
+                                            wordCountDict.Add(temp, new WordCount(temp, 1));
                                         }
                                     }
-                                    wordCountList = qs.Sort(wordCountList.ToArray()).ToList();
+                                    WordCount[] wordCountList = new WordCount[wordCountDict.Count];
+
+                                    wordCountList = qs.Sort(wordCountDict.Values.ToArray());
                                     string s = "";
-                                    for (int i = 0; i < wordCountList.Count; i++)
+                                    for (int i = 0; i < wordCountList.Length; i++)
                                     {
                                         s = s + wordCountList[i].Word + " " + wordCountList[i].Count;
-                                        if (i < wordCountList.Count-1)
+                                        if (i < wordCountList.Length - 1)
                                         {
                                             s = s + ", ";
                                         }
@@ -186,8 +186,8 @@ class TCPServer
                 }
                 sWriter.Flush();
             }
-            Console.WriteLine("Closed connection to client.");
-            
+            Console.WriteLine("Connection closed to client.");
+
         }
 
     }
