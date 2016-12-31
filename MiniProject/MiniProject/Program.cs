@@ -10,8 +10,6 @@ namespace Server
     {
         static void Main(string[] args)
         {
-            TestBST();
-            return;
             Console.WriteLine("Multi-Threaded TCP Server started...");
             Console.WriteLine("Provide IP or blank to use default (localhost):");
             String ip = Console.ReadLine();
@@ -27,7 +25,6 @@ namespace Server
                 port = 58008;
             }
             new TCPServer(ip, port);
-            
         }
 
         static void TestBST()
